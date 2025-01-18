@@ -1,11 +1,49 @@
 use solvegen_15p::*;
 
 fn compute_database() {
+    // Start the computation of database
     let _ = DB_LIST.is_empty();
 }
 
-fn main() {
-    let handle = std::thread::spawn(compute_database);
+enum Method {
+    Astar,
+    Rbfs,
+}
+
+fn solve() {
+    println!("Choose a search method:\n1. A*\n2. RBFS");
+    let method = {
+        let mut method = String::new();
+        std::io::stdin().read_line(&mut method).unwrap();
+        match method.trim() {
+            "1" => Method::Astar,
+            "2" => Method::Rbfs,
+            _ => {
+                println!("Unknown method: {method:?}, using A*");
+                Method::Astar
+            }
+        }
+    };
+
+    println!("Input the weight factor(>=1.0), bigger for less optimized solution, or just press Enter to get optimal result:");
+    let weight = {
+        let mut line = String::new();
+        std::io::stdin().read_line(&mut line).expect("stdin error");
+        if line.chars().all(|ch| ch.is_whitespace()) {
+            None
+        } else {
+            line.trim()
+                .parse::<f32>()
+                .inspect_err(|err| {
+                    println!("{}, using default", err);
+                })
+                .ok()
+        }
+    };
+    {
+        let mut config = CONFIG.write().unwrap();
+        *config = Config { weight };
+    }
 
     println!("Input your 15-puzzle layout, use 0 for the space:");
 
@@ -38,10 +76,11 @@ fn main() {
 
     let puzzle = Puzzle::from_slider(array);
 
-    handle.join().unwrap();
+    let result = match method {
+        Method::Astar => astar::AstarNode::new(puzzle, Default::default()).astar(),
+        Method::Rbfs => rbfs::RbfsNode::new(puzzle, Default::default()).rbfs(),
+    };
 
-    println!("Estimated solution length: {}", puzzle.heu());
-    let result = Node::new(puzzle).rbfs();
     match result {
         Some(solution) => {
             let mut list = Vec::new();
@@ -71,6 +110,51 @@ fn main() {
         }
         _ => {
             println!("No solution found!");
+        }
+    }
+}
+
+fn generate() {
+    println!("Input approximate desired solve steps:");
+    let mut steps = String::new();
+    std::io::stdin().read_line(&mut steps).unwrap();
+    let steps = match steps.trim().parse::<usize>() {
+        Ok(steps) => steps,
+        Err(err) => {
+            println!("{err}");
+            return;
+        }
+    };
+
+    let puzzle = Puzzle::new_random_approx(steps);
+    let mut count = 0;
+    println!("Result:");
+    for value in puzzle.pos_to_slider() {
+        print!("{value}");
+
+        count += 1;
+        if count == 4 {
+            count = 0;
+            println!();
+        } else {
+            print!(" ");
+        }
+    }
+}
+
+fn main() {
+    let _handle = std::thread::spawn(compute_database);
+
+    loop {
+        println!("--------------------\n1. Solve\n2. Generate");
+        let mut choice = String::new();
+        std::io::stdin().read_line(&mut choice).unwrap();
+        match choice.trim() {
+            "1" => solve(),
+            "2" => generate(),
+            _ => {
+                println!("Choice {choice:?} not available");
+            }
         }
     }
 }

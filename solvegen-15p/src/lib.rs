@@ -1,12 +1,15 @@
+pub mod astar;
 mod db;
 mod heu;
 mod puzzle;
-mod rbfs;
+pub mod random;
+pub mod rbfs;
+mod search;
 mod util;
 
 pub use db::*;
 pub use puzzle::*;
-pub use rbfs::*;
+pub use search::*;
 pub use util::*;
 
 pub(crate) fn pause() {

@@ -54,12 +54,16 @@ impl Db {
 
                     let mut next = key;
                     next.0[0] = number;
-                    if let Some(overlap) = overlap {
+
+                    let next_value = if let Some(overlap) = overlap {
                         next.0[overlap] = space_pos;
-                    }
+                        value + 1
+                    } else {
+                        value
+                    };
 
                     if let std::collections::hash_map::Entry::Vacant(e) = self.map.entry(next) {
-                        e.insert(value + 1);
+                        e.insert(next_value);
                         queue.push_back(next);
                     }
                 }

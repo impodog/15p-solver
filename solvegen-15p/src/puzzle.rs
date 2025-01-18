@@ -25,6 +25,16 @@ pub enum Slide {
 pub const SLIDES: [Slide; 4] = [Slide::Left, Slide::Right, Slide::Up, Slide::Down];
 
 impl Slide {
+    /// Returns the opposite sliding direction
+    pub fn opp(self) -> Slide {
+        match self {
+            Self::Left => Self::Right,
+            Self::Right => Self::Left,
+            Self::Up => Self::Down,
+            Self::Down => Self::Up,
+        }
+    }
+
     /// Returns the slid position of a slider, if any
     pub fn slide(self, pos: Value) -> Option<Value> {
         match self {
@@ -68,6 +78,11 @@ impl Puzzle {
         } else {
             pos + 1
         }
+    }
+
+    /// Returns a puzzle at its solved state
+    pub fn new_solved() -> Self {
+        Self::from_slider([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0])
     }
 
     /// Creates a puzzle status with given map from position to slider,

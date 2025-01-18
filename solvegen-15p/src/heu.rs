@@ -19,11 +19,12 @@ impl Puzzle {
             // println!("Database {db}, key {key:?}");
             let db = DB_LIST
                 .get(db)
-                .expect("database should before index DB_SIZE");
+                .expect("database should exist before index DB_SIZE");
             value += db.get(&key).copied().unwrap_or_else(|| {
                 println!("Query failed with {key:?}");
                 0
             });
+            // println!("Query with key {key:?}, value became {value}");
             pos += DB_SIZE;
         }
         value
